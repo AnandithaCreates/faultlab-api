@@ -1,5 +1,8 @@
-"""Basic tests for FaultLab Person-2."""
+"""Basic tests for FaultLab"""
+import sys
+import os
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from src.validator import validate_response
 
 
