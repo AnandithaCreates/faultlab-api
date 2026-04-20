@@ -15,3 +15,12 @@ Thumbs.db
 
 # Logs
 *.log
+# VS Code
+.vscode/
+
+# pytest cache
+.pytest_cache/
+# Python packaging
+build/
+dist/
+*.egg-info/
