@@ -151,6 +151,21 @@ This makes the module useful for:
 
 ---
 
+## 🔌 Integration Interface
+
+To support the Person-1 execution system without changing the existing core modules, the repository now also exposes a small compatibility layer in `src/interface.py`.
+
+Available entrypoints:
+
+- `generate_failure_variants(step)`
+- `validate_api_response(expected, response)`
+- `compute_reliability_score(results)`
+- `build_test_report(results)`
+
+This layer delegates to the existing validator and the new lightweight compatibility modules so upstream systems can integrate with a stable, simple API surface.
+
+---
+
 ## 📡 Observability Metrics
 
 Reliability engineering is stronger when it is measurable.

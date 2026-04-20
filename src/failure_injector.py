@@ -156,3 +156,60 @@ def _coerce_semantic_error(value: Any) -> Any:
     if isinstance(value, dict):
         return {}
     return None
+
+
+
+def generate_failures(step: dict[str, Any]) -> list[dict[str, Any]]:
+    """Generate compatibility failure variants for a generic API step.
+
+    This wrapper is intentionally defensive so it can accept the payload shape
+    expected by Person-1 integrations without changing the original failure
+    variant generator used elsewhere in the repository.
+    """
+
+    if not isinstance(step, dict):
+        return []
+
+    variants: list[dict[str, Any]] = []
+    request_body = step.get("body")
+    request_headers = step.get("headers")
+
+    if isinstance(request_body, dict) and request_body:
+        missing_field_variant = deepcopy(step)
+        missing_body = deepcopy(request_body)
+        missing_key = sorted(missing_body)[0]
+        missing_body.pop(missing_key, None)
+        missing_field_variant["body"] = missing_body
+        missing_field_variant["failure_type"] = "missing_required_field"
+        variants.append(missing_field_variant)
+
+        invalid_type_variant = deepcopy(step)
+        invalid_body = deepcopy(request_body)
+        invalid_key = sorted(invalid_body)[0]
+        invalid_body[invalid_key] = _coerce_invalid_type(invalid_body[invalid_key])
+        invalid_type_variant["body"] = invalid_body
+        invalid_type_variant["failure_type"] = "invalid_data_type"
+        variants.append(invalid_type_variant)
+
+        corrupted_body_variant = deepcopy(step)
+        corrupted_body_variant["body"] = "{corrupted-body"
+        corrupted_body_variant["failure_type"] = "corrupted_body_format"
+        variants.append(corrupted_body_variant)
+
+    if isinstance(request_headers, dict) and request_headers:
+        lowered_headers = {str(key).lower(): key for key in request_headers}
+        auth_header = lowered_headers.get("authorization")
+        if auth_header is not None:
+            missing_auth_variant = deepcopy(step)
+            missing_headers = deepcopy(request_headers)
+            missing_headers.pop(auth_header, None)
+            missing_auth_variant["headers"] = missing_headers
+            missing_auth_variant["failure_type"] = "missing_authorization_header"
+            variants.append(missing_auth_variant)
+        else:
+            missing_auth_variant = deepcopy(step)
+            missing_auth_variant["headers"] = deepcopy(request_headers)
+            missing_auth_variant["failure_type"] = "missing_authorization_header"
+            variants.append(missing_auth_variant)
+
+    return variants
